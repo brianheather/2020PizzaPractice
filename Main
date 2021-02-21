@@ -1,0 +1,387 @@
+package practice;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
+
+public class Main {
+
+	static HashMap<String, Integer> translator = new HashMap<>();
+	static ArrayList<Integer[]> pizzas = new ArrayList<>();
+	static ArrayList<Integer[]> sort2Pizzas = new ArrayList<>();
+	static ArrayList<Integer[]> sort3Pizzas = new ArrayList<>();
+	static ArrayList<Integer[]> sort4Pizzas = new ArrayList<>();
+
+	static boolean teams2 = false;
+	static boolean teams3 = false;
+	static boolean teams4 = false;
+
+	static int[] numTeams = new int[3];
+
+	static int max2 = 0;
+	static int max3 = 0;
+
+	static ArrayList<Integer[]> finalOut = new ArrayList<>();
+	static int uniqueMin = 0; // Greater than this
+
+	public static int calPoints(Integer[] currPizza) {
+		Set<Integer> combination = new HashSet<>();
+		Set<Integer> same = new HashSet<>();
+		Set<Integer> totalNum = new HashSet<>();
+
+		ArrayList<Integer> first = new ArrayList<>(Arrays.asList(pizzas.get(currPizza[0])));
+		same.addAll(new HashSet<Integer>(first));
+
+		for (Integer elem : currPizza) {
+			combination.addAll(new ArrayList<Integer>(List.of(pizzas.get(elem))));
+			same.retainAll(List.of(pizzas.get(elem)));
+			totalNum.add(elem);
+		}
+		return (totalNum.size() == currPizza.length) ? combination.size() - same.size() : 0;
+	}
+
+	public static void main(String[] args) {
+
+		System.out.println("Start reading");
+		readFile();
+
+		System.out.println("Teams 2 start sorting");
+		if (teams2) {
+			sort2();
+			// printer(sort2Pizzas);
+			// System.out.println(sort2Pizzas.size());
+		}
+		System.out.println("Teams 3 start sorting");
+		if (teams3) {
+			sort3();
+			// printer(sort3Pizzas);
+			// System.out.println(sort3Pizzas.size());
+		}
+		System.out.println("Teams 4 start sorting");
+		if (teams4) {
+			sort4();
+			// printer(sort4Pizzas);
+			// System.out.println(sort4Pizzas.size());
+		}
+		System.out.println("Write");
+		writeToFile();
+
+		System.out.println("Done");
+	}
+
+	public static ArrayList<Integer> writeD(ArrayList<Integer[]> dePizza, int prevMax, ArrayList<Integer> skip) {
+		for (int i = 0; i < dePizza.size(); i++) {
+			if (calPoints(dePizza.get(i)) <= prevMax) {
+				break;
+			} else {
+
+				boolean good = true;
+				for (Integer elem : dePizza.get(i)) {
+					if (skip.contains(elem)) {
+						good = false;
+						break;
+					}
+				}
+				if (good) {
+					Integer[] data = new Integer[dePizza.get(i).length];
+					int count = 0;
+					for (Integer elem : dePizza.get(i)) {
+						skip.add(elem);
+						data[count++] = elem;
+					}
+					finalOut.add(data);
+				}
+			}
+		}
+		return skip;
+	}
+
+	public static void writeToFile() {
+		File outputFile = new File("OUTPUT.txt");
+		try {
+			ArrayList<Integer> skip = new ArrayList<>();
+
+			skip = writeD(sort4Pizzas, max3, skip);
+			skip = writeD(sort3Pizzas, max2, skip);
+			skip = writeD(sort2Pizzas, 0, skip);
+
+			PrintWriter outputWriter = new PrintWriter(outputFile);
+
+			outputWriter.print(finalOut.size());
+			// System.out.print(finalOut.size());
+			for (Integer[] elem : finalOut) {
+				outputWriter.print("\n" + elem.length);
+				// System.out.print("\n" + elem.length);
+				for (Integer elem1 : elem) {
+					outputWriter.print(" " + elem1);
+					// System.out.print(" " + elem1);
+				}
+			}
+			outputWriter.close();
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void sort2() {
+		ArrayList<int[]> allGood = new ArrayList<>();
+
+		for (int i = 0; i < pizzas.size(); i++) {
+			Integer[] currPizza = { i, 0 };
+			for (int j = 0; j < pizzas.size(); j++) {
+				currPizza[1] = j;
+				int ans = calPoints(currPizza);
+				if (ans > uniqueMin) {
+					allGood.add(new int[] { ans, i, j });
+				}
+			}
+		}
+
+		Collections.sort(allGood, new Comparator<int[]>() {
+			public int compare(int[] a, int[] b) {
+				return (Integer) (Integer.valueOf(a[0])).compareTo(b[0]);
+			}
+		});
+		Collections.reverse(allGood);
+		if (allGood.size() == 0) {
+			System.out.println("Lower unique min!!");
+		}
+		max2 = allGood.get(0)[0];
+		ArrayList<ArrayList<Integer>> skip = new ArrayList<>();
+
+		int maxNum = (numTeams[0] + numTeams[1] + numTeams[2]) * 5;
+
+		HashMap<Integer, Integer> counter = new HashMap<>();
+
+		for (int[] elem : allGood) {
+			boolean good = true;
+			if (maxNum == 0) {
+				break;
+			}
+			for (int i = 1; i < elem.length; i++) {
+				if (counter.containsKey(elem[i])) {
+					Integer num = counter.get(elem[i]);
+					if (num >= 5) {
+						// System.out.println(elem[1] + " is bad");
+						good = false;
+					}
+				} else {
+					counter.put(elem[i], 0);
+				}
+			}
+			if (good) {
+				counter.put(elem[1], counter.get(elem[1]) + 1);
+				counter.put(elem[2], counter.get(elem[2]) + 1);
+				ArrayList<Integer> curr = new ArrayList<>(Arrays.asList(elem[1], elem[2]));
+				Collections.sort(curr);
+				if (!skip.contains(curr)) {
+					skip.add(curr);
+					sort2Pizzas.add(toPizza(elem));
+					maxNum--;
+				}
+			}
+		}
+	}
+
+	public static void sort3() {
+		ArrayList<int[]> allGood = new ArrayList<>();
+
+		for (Integer[] elem : sort2Pizzas) {
+			Integer[] currPizza = new Integer[] { elem[0], elem[1], 0 };
+			for (int j = 0; j < pizzas.size(); j++) {
+				currPizza[2] = j;
+
+				int ans = calPoints(currPizza);
+				if (ans > uniqueMin + 0) {
+					int[] data = { ans, elem[0], elem[1], j };
+					allGood.add(data);
+				}
+			}
+		}
+		Collections.sort(allGood, new Comparator<int[]>() {
+			public int compare(int[] a, int[] b) {
+				return (Integer) (Integer.valueOf(a[0])).compareTo(b[0]);
+			}
+		});
+		Collections.reverse(allGood);
+		max3 = allGood.get(0)[0];
+		ArrayList<ArrayList<Integer>> skip = new ArrayList<>();
+
+		int maxNum = (numTeams[1] + numTeams[2]) * 5;
+
+		HashMap<Integer, Integer> counter = new HashMap<>();
+
+		for (int[] elem : allGood) {
+			boolean good = true;
+			if (maxNum == 0) {
+				break;
+			}
+			for (int i = 1; i < elem.length; i++) {
+				if (counter.containsKey(elem[i])) {
+					Integer num = counter.get(elem[i]);
+					if (num >= 5) {
+						good = false;
+					}
+				} else {
+					counter.put(elem[i], 0);
+				}
+			}
+			if (good) {
+				for (int i = 1; i < elem.length; i++) {
+					counter.put(elem[i], counter.get(elem[i]) + 1);
+				}
+				ArrayList<Integer> curr = new ArrayList<>(Arrays.asList(elem[1], elem[2], elem[3]));
+				Collections.sort(curr);
+				if (!skip.contains(curr)) {
+					skip.add(curr);
+					sort3Pizzas.add(toPizza(elem));
+					maxNum--;
+				}
+			}
+		}
+	}
+
+	public static void sort4() {
+		ArrayList<int[]> allGood = new ArrayList<>();
+
+		for (Integer[] elem : sort3Pizzas) {
+			Integer[] currPizza = new Integer[] { elem[0], elem[1], elem[2], 0 };
+			for (int j = 0; j < pizzas.size(); j++) {
+				currPizza[3] = j;
+				int ans = calPoints(currPizza);
+
+				if (ans > uniqueMin + 0) {
+					int[] data = { ans, elem[0], elem[1], elem[2], j };
+					allGood.add(data);
+				}
+			}
+		}
+		Collections.sort(allGood, new Comparator<int[]>() {
+			public int compare(int[] a, int[] b) {
+				return (Integer) (Integer.valueOf(a[0])).compareTo(b[0]);
+			}
+		});
+		Collections.reverse(allGood);
+		ArrayList<ArrayList<Integer>> skip = new ArrayList<>();
+
+		int maxNum = numTeams[2];
+
+		HashMap<Integer, Integer> counter = new HashMap<>();
+
+		for (int[] elem : allGood) {
+			boolean good = true;
+			if (maxNum == 0) {
+				break;
+			}
+			for (int i = 1; i < elem.length; i++) {
+				if (counter.containsKey(elem[i])) {
+					Integer num = counter.get(elem[i]);
+					if (num >= 5) {
+						// System.out.println(elem[1] + " is bad");
+						good = false;
+					}
+				} else {
+					counter.put(elem[i], 0);
+				}
+			}
+			if (good) {
+				for (int i = 1; i < elem.length; i++) {
+					counter.put(elem[i], counter.get(elem[i]) + 1);
+				}
+				ArrayList<Integer> curr = new ArrayList<>(Arrays.asList(elem[1], elem[2], elem[3], elem[4]));
+				Collections.sort(curr);
+				if (!skip.contains(curr)) {
+					skip.add(curr);
+					sort4Pizzas.add(toPizza(elem));
+					maxNum--;
+				}
+			}
+		}
+	}
+
+	public static Integer[] toPizza(int[] info) {
+		Integer[] asdf = new Integer[info.length - 1];
+		for (int i = 0; i < info.length - 1; i++) {
+			asdf[i] = info[i + 1];
+		}
+		return asdf;
+	}
+
+	public static void readFile() {
+		Scanner info = null;
+
+		File filename;
+		filename = new File("e_many_teams.in");
+		filename = new File("d_many_pizzas.in");
+		 filename = new File("c_many_ingredients.in"); //200 (?)
+		// filename = new File("b_little_bit_of_everything.in"); //0
+		//filename = new File("a_example.in"); //0
+		try {
+			info = new Scanner(filename);
+
+			String dataT = info.nextLine();
+			String[] data = dataT.split(" ");
+
+			teams4 = (Integer.parseInt(data[3]) > 0) ? true : false;
+			teams3 = (Integer.parseInt(data[2]) > 0 || teams4) ? true : false;
+			teams2 = (Integer.parseInt(data[1]) > 0 || teams3) ? true : false;
+
+			for (int i = 0; i < 3; i++) {
+				numTeams[i] = Integer.parseInt(data[i + 1]);
+			}
+
+			Integer counter = 0;
+
+			while (info.hasNextLine()) {
+				dataT = info.nextLine();
+				data = dataT.split(" ");
+
+				Integer length = Integer.parseInt(data[0]);
+				//System.out.println(length);
+				if (length > 0) { ///EDIT ACCORDING TO NUMBER ABOVE///
+					//System.out.println(length);
+					Integer[] temp = new Integer[length];
+					for (Integer i = 1; i <= length; i++) {
+						if (!translator.containsKey(data[i])) {
+							translator.put(data[i], counter++);
+						}
+						temp[i - 1] = translator.get(data[i]);
+					}
+					pizzas.add(temp);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		System.out.println(pizzas.size());
+	}
+
+	public static void printerP(ArrayList<int[]> data) {
+		for (int[] elem : data) {
+			for (Integer da : elem) {
+				System.out.print(da + " ");
+			}
+			System.out.println();
+		}
+	}
+
+	public static void printer(ArrayList<Integer[]> data) {
+		for (Integer[] elem : data) {
+			for (Integer da : elem) {
+				System.out.print(da + " ");
+			}
+			System.out.println();
+		}
+	}
+}
