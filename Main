@@ -31,7 +31,9 @@ public class Main {
 	static int max3 = 0;
 
 	static ArrayList<Integer[]> finalOut = new ArrayList<>();
-	static int uniqueMin = 0; // Greater than this 
+	static int uniqueMin = 0; // Greater than this
+
+	static int multiplier = 7;
 
 	public static int calPoints(Integer[] currPizza) {
 		Set<Integer> combination = new HashSet<>();
@@ -129,7 +131,6 @@ public class Main {
 			outputWriter.close();
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -160,7 +161,7 @@ public class Main {
 		max2 = allGood.get(0)[0];
 		ArrayList<ArrayList<Integer>> skip = new ArrayList<>();
 
-		int maxNum = (numTeams[0] + numTeams[1] + numTeams[2]) * 5;
+		int maxNum = (numTeams[0] + numTeams[1] + numTeams[2]) * multiplier;
 
 		HashMap<Integer, Integer> counter = new HashMap<>();
 
@@ -172,7 +173,7 @@ public class Main {
 			for (int i = 1; i < elem.length; i++) {
 				if (counter.containsKey(elem[i])) {
 					Integer num = counter.get(elem[i]);
-					if (num >= 5) {
+					if (num >= multiplier) {
 						// System.out.println(elem[1] + " is bad");
 						good = false;
 					}
@@ -218,7 +219,7 @@ public class Main {
 		max3 = allGood.get(0)[0];
 		ArrayList<ArrayList<Integer>> skip = new ArrayList<>();
 
-		int maxNum = (numTeams[1] + numTeams[2]) * 5;
+		int maxNum = (numTeams[1] + numTeams[2]) * multiplier;
 
 		HashMap<Integer, Integer> counter = new HashMap<>();
 
@@ -230,7 +231,7 @@ public class Main {
 			for (int i = 1; i < elem.length; i++) {
 				if (counter.containsKey(elem[i])) {
 					Integer num = counter.get(elem[i]);
-					if (num >= 5) {
+					if (num >= multiplier) {
 						good = false;
 					}
 				} else {
@@ -287,7 +288,7 @@ public class Main {
 			for (int i = 1; i < elem.length; i++) {
 				if (counter.containsKey(elem[i])) {
 					Integer num = counter.get(elem[i]);
-					if (num >= 5) {
+					if (num >= multiplier) {
 						// System.out.println(elem[1] + " is bad");
 						good = false;
 					}
@@ -321,12 +322,27 @@ public class Main {
 	public static void readFile() {
 		Scanner info = null;
 
+		// TODO
 		File filename;
-		filename = new File("e_many_teams.in");
-		filename = new File("d_many_pizzas.in");
-		 filename = new File("c_many_ingredients.in"); //200 (?)
-		// filename = new File("b_little_bit_of_everything.in"); //0
-		//filename = new File("a_example.in"); //0
+		int minNum = 0;
+		// d and e is the same data, different parameters
+		// minNum, multiplier, time, num of data
+
+		// 12 10 6 mins 3205
+		// filename = new File("e_many_teams.in"); minNum = 12; multiplier = 10;
+
+		// 12 7 5 mins 3205
+		// filename = new File("d_many_pizzas.in"); minNum = 12; multiplier = 7;
+
+		// 300 10 mins
+		// filename = new File("c_many_ingredients.in"); minNum = 300; multiplier = 7;
+
+		// 0 instant 500 (Too many output pizzas)
+		filename = new File("b_little_bit_of_everything.in");
+		multiplier = 10;
+
+		// 0 instant
+		// filename = new File("a_example.in"); multiplier = 7;
 		try {
 			info = new Scanner(filename);
 
@@ -348,9 +364,9 @@ public class Main {
 				data = dataT.split(" ");
 
 				Integer length = Integer.parseInt(data[0]);
-				//System.out.println(length);
-				if (length > 0) { ///EDIT ACCORDING TO NUMBER ABOVE///
-					//System.out.println(length);
+				// System.out.println(length);
+				if (length > minNum) { /////////////////////////////////////////////////
+					// System.out.println(length);
 					Integer[] temp = new Integer[length];
 					for (Integer i = 1; i <= length; i++) {
 						if (!translator.containsKey(data[i])) {
