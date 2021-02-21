@@ -31,7 +31,7 @@ public class Main {
 	static int max3 = 0;
 
 	static ArrayList<Integer[]> finalOut = new ArrayList<>();
-	static int uniqueMin = 0; // Greater than this
+	static int uniqueMin = 0; // Greater than this 
 
 	public static int calPoints(Integer[] currPizza) {
 		Set<Integer> combination = new HashSet<>();
